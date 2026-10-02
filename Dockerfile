@@ -11,15 +11,9 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm gen-routes && pnpm build
+RUN pnpm build
 
-# Serves the static SPA via plain Node HTTP — no nginx, no extra runtimes.
-# SSL is handled by Dokploy's reverse proxy in front of this container.
 FROM node:24-alpine AS runtime
-
-LABEL org.opencontainers.image.title="music-spa"
-LABEL org.opencontainers.image.description="Jellyfin + Plex music aggregator (Svelte 5 SPA)"
-LABEL org.opencontainers.image.source="https://github.com/XabierGoenaga/music-spa"
 
 ENV NODE_ENV=production
 ENV PORT=8080
@@ -27,8 +21,10 @@ ENV HOST=0.0.0.0
 
 WORKDIR /app
 
-COPY --from=build /app/dist /app/dist
-COPY docker/server.mjs /app/server.mjs
+# Copiamos las dependencias de producción y el resultado de la compilación nativa
+COPY package.json pnpm-lock.yaml ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
 
 EXPOSE 8080
 
@@ -37,4 +33,4 @@ USER node
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -q -O - http://127.0.0.1:8080/ >/dev/null || exit 1
 
-CMD ["node", "/app/server.mjs"]
+CMD ["node", "build"]
