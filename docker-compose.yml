@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: music-spa:latest
+    container_name: music-spa
+    restart: unless-stopped
+    ports:
+      - "8080"
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
