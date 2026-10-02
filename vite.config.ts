@@ -1,5 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -13,8 +13,11 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
 				experimental: { async: true }
 			},
-			adapter: adapter(),
-			experimental: { remoteFunctions: true }
+			adapter: adapter({
+				fallback: '200.html'
+			}),
+			experimental: { remoteFunctions: true },
+			inspector: true
 		})
 	]
 });
